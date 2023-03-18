@@ -38,8 +38,6 @@ class RelationshipGenerator():
         self.links = [] # [start, end, weight]
         self.features = {} #{page: page_content}
         self.save_dir = save_dir
-        with open(os.path.join(self.save_dir, "links.npy"), "rb+") as fp:
-            self.links = list(np.load(fp))
         with open(os.path.join(self.save_dir, "features.json"), "r+") as fp:
             self.features = json.load(fp)
         print("Got memoized features ", self.features.keys())
@@ -276,6 +274,7 @@ def create_graph(topics=["tests"], depth=20, max_size=20, simplify=False, plot=F
     # G.add_node()
     G.add_nodes_from(nodes)
     # List of tuples page title, page content
+    features = dict(filter(lambda x: x[0] in nodes, rg.features.items()))
     features = sorted(rg.features.items(), key=lambda key_value: nodes.index(key_value[0]))
     tokenized_docs = [nltk.word_tokenize(' '.join(doc).lower()) for doc in features]
     tagged_docs = [TaggedDocument(words=doc, tags=[str(i)]) for i, doc in enumerate(tokenized_docs)]
