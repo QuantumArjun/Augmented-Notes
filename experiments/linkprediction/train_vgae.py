@@ -63,7 +63,7 @@ if __name__ == '__main__':
     else:
         data = load_wiki.load_data()
     data.edge_index = gutils.to_undirected(data.edge_index)
-    data = gutils.train_test_split_edges(data)
+    data = gutils.train_test_split_edges(data, val_ratio=0.2)
 
     num_features = data.x.shape[1]
     aucs = []
@@ -77,7 +77,7 @@ if __name__ == '__main__':
             model.train()
             optimizer.zero_grad()
             z = model.encode(data.x, data.train_pos_edge_index)
-            loss = model.recon_loss(z, data.train_pos_edge_index)#0.01*model.kl_loss()
+            loss = model.recon_loss(z, data.train_pos_edge_index, neg_edge_index=None)#0.01*model.kl_loss()
             loss.backward()
             optimizer.step()
 
