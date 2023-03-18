@@ -1,0 +1,5 @@
+A type of voting system where each voter gets a fixed number of votes. However, they can spend those votes however they wish, putting in multiple votes for a candidate if they wish 
+
+Used in Lichtenstein, Luxembourg, and Switzerland (at all levels), congressional elections in Ecuador, El Salvador, and Honduras
+
+[[Voting Systems]]
