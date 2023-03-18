@@ -38,6 +38,11 @@ class RelationshipGenerator():
         self.links = [] # [start, end, weight]
         self.features = {} #{page: page_content}
         self.save_dir = save_dir
+        with open(os.path.join(self.save_dir, "links.npy"), "rb+") as fp:
+            self.links = list(np.load(fp))
+        with open(os.path.join(self.save_dir, "features.json"), "r+") as fp:
+            self.features = json.load(fp)
+
 
     def scan(self, start=None, repeat=0):
         print("On depth: ", repeat)
@@ -88,10 +93,15 @@ class RelationshipGenerator():
                 #add the links
                 for i, link in enumerate(links):
                     try:
-                        time.sleep(np.random.randint(0, 10))
-                        self.features[link.lower()] = wp.page(link.lower()).content
-                        self.links.append([start, link.lower(), link_weights[i] + 2 * int(term_search)]) # 3 works pretty well
-                        print("GOT IT")
+                        link = link.lower()
+                        if link not in self.features:
+                            time.sleep(np.random.randint(0, 10))
+                            self.features[link] = wp.page(link).content
+                            print("GOT IT")
+                        else:
+                            print("HAVE IT")
+                        # self.features[link.lower()] = wp.page(link.lower()).content
+                        self.links.append([start, link, link_weights[i] + 2 * int(term_search)]) # 3 works pretty well
                     except (DisambiguationError, PageError):
                         print("ERROR, I DID NOT GET THIS PAGE")
                 #add the page content
