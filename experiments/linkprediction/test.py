@@ -5,6 +5,7 @@ from train_vgae import VGAE_Encoder
 import load_wiki
 import json
 import argparse
+from gensim.models.doc2vec import Doc2Vec
 
 class VGAETester():
     def __init__(self, args):
@@ -16,6 +17,7 @@ class VGAETester():
         self.pos_edge_index = torch.cat([self.train_pos_edge_index, self.val_pos_edge_index, 
                                          self.test_pos_edge_index], dim=1)
         # Loading Model
+        self.doc2vec = Doc2Vec.load(args.doc2vec_model_dir)
         num_features = self.x.shape[1]
         self.model =VGAE(VGAE_Encoder(num_features))
         self.model.load_state_dict(torch.load(os.path.join(args.save_dir, 'model.pt')))
@@ -52,6 +54,34 @@ class VGAETester():
             docs.append((doc1, doc2))
         return docs
 
+    def test_all_with_wiki(self, data_path):
+    for path, _subdirs, files in os.walk(data_path):
+            for name in files:
+                if name != 'node.txt': continue
+                closest_docs = test_with_wiki(os.path.join(path, name))
+                with open(os.path.join(os.path.join(path, name), "closest_docs.json"), "w") as outfile:
+                    outfile.write(json.dumps(docs))
+
+    def test_with_wiki(self, data_path):
+        with open(data_path) as file:
+            doc = file.read()
+        tokenized_docs = nltk.word_tokenize(' '.join(doc).lower())
+        test_data = self.doc2vec.infer_vector(tokenized_docs)
+        self.x = torch.cat([self.x, test_data], dim=0)
+        z = self.model.encode(self.x, self.pos_edge_index)
+        N, F = self.x.shape # Num Nodes, Num Features
+        pot_adj = torch.stack([(N-1)*torch.ones(N-1), torch.arange(N-1)], dim=0)
+        pot_adj = pot_adj.to(torch.long)
+        adj = self.model.decoder(z, pot_adj)
+        doc_nums = torch.topk(adj.flatten(), 5, largest=True).indices
+        docs = [] 
+        for doc_num in doc_nums:
+            doc = self.find_document(doc_num)
+            print(data_path, doc['title'])
+            docs.append(doc)
+        return docs
+
+
     def test(self, data_path):
         test_data = load_wiki.load_data(data_path)
         self.x = torch.cat([self.x, test_data.x], dim=0)
@@ -84,9 +114,10 @@ if __name__ == '__main__':
     parser.add_argument('--save_dir', type=str, default="../../results/data/vgae/")
     parser.add_argument('--new_graph_data_path', type=str, default="../../dataset/test/")
     parser.add_argument('--data_path', type=str, default="../../dataset/test/cross_platform")
-    parser.add_argument('--metadata_path', type=str, default="../../dataset/metadata.json")
+    parser.add_argument('--metadata-path', type=str, default="../../dataset/metadata.json")
+    parser.add_argument('--doc2vec-model-dir', type=str, default="../../dataset/model_test/model.bin")
     args = parser.parse_args()
-    args.vectors_data_path = os.path.join(args.data_path, 'vectors.json')
+    # args.vectors_data_path = os.path.join(args.data_path, 'vectors.json')
     tester = VGAETester(args)
 
     docs = tester.test_new_graph(args.new_graph_data_path)
