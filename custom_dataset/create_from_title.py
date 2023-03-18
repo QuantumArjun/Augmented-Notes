@@ -58,8 +58,8 @@ class RelationshipGenerator():
 
             # should check if start page exists
             # and haven't already scanned
-            if start in [l[0] for l in self.links]:
-                raise Exception("Already scanned")
+            # if start in [l[0] for l in self.links]:
+            #     raise Exception("Already scanned")
             
             #iteratively saves in case we get throttled
 
@@ -100,13 +100,13 @@ class RelationshipGenerator():
                         if link not in self.features:
                             time.sleep(np.random.randint(0, 10))
                             self.features[link] = wp.page(link).content
-                            print("GOT IT")
+                            print("GOT IT: ", link)
                         else:
-                            print("HAVE IT")
+                            print("HAVE IT: ", link)
                         # self.features[link.lower()] = wp.page(link.lower()).content
                         self.links.append([start, link, link_weights[i] + 2 * int(term_search)]) # 3 works pretty well
                     except (DisambiguationError, PageError):
-                        print("ERROR, I DID NOT GET THIS PAGE")
+                        print("ERROR, I DID NOT GET THIS PAGE: ", link)
                 #add the page content
                 # print(self.features[start])
                 
