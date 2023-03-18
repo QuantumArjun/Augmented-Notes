@@ -119,8 +119,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
     # args.vectors_data_path = os.path.join(args.data_path, 'vectors.json')
     tester = VGAETester(args)
-
-    docs = tester.test_new_graph(args.new_graph_data_path)
+    tester.test_all_with_wiki(args.new_graph_data_path)
+    # docs = tester.test_new_graph(args.new_graph_data_path)
     # docs = tester.test(args.vectors_data_path)
-    with open(os.path.join(args.new_graph_data_path, "closest_docs.json"), "w") as outfile:
-        outfile.write(json.dumps(docs))
+    # with open(os.path.join(args.new_graph_data_path, "closest_docs.json"), "w") as outfile:
+        # outfile.write(json.dumps(docs))
