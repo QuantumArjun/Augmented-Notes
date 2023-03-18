@@ -42,6 +42,7 @@ class RelationshipGenerator():
             self.links = list(np.load(fp))
         with open(os.path.join(self.save_dir, "features.json"), "r+") as fp:
             self.features = json.load(fp)
+        print("Got memoized features ", self.features.keys())
 
 
     def scan(self, start=None, repeat=0):
@@ -61,10 +62,6 @@ class RelationshipGenerator():
                 raise Exception("Already scanned")
             
             #iteratively saves in case we get throttled
-            with open(os.path.join(self.save_dir, "links.npy"), "wb+") as fp:
-                np.save(fp, np.array(self.links))
-            with open(os.path.join(self.save_dir, "features.json"), "w+") as fp:
-                fp.write(json.dumps(self.features))
 
             term_search = True if start is not None else False
 
@@ -78,6 +75,7 @@ class RelationshipGenerator():
                 # Fetch the page through the Wikipedia API
                 page = wp.page(start)
                 self.features[start] = page.content
+                print(self.features.keys())
                 links = list(set(page.links))
                 # ignore some uninteresting terms
                 links = [l for l in links if not self.ignore_term(l)]
@@ -92,6 +90,11 @@ class RelationshipGenerator():
 
                 #add the links
                 for i, link in enumerate(links):
+                    if i % 10 == 0:
+                        with open(os.path.join(self.save_dir, "links.npy"), "wb+") as fp:
+                            np.save(fp, np.array(self.links))
+                        with open(os.path.join(self.save_dir, "features.json"), "w+") as fp:
+                            fp.write(json.dumps(self.features))
                     try:
                         link = link.lower()
                         if link not in self.features:
