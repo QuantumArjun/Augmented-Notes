@@ -4,7 +4,7 @@ import random
 import json
 import os
 import pickle
-
+import time
 # DOC2VEC
 from gensim.models.doc2vec import Doc2Vec, TaggedDocument
 import nltk
@@ -87,8 +87,13 @@ class RelationshipGenerator():
 
                 #add the links
                 for i, link in enumerate(links):
-                    self.features[link.lower()] = wp.page(link.lower()).content
-                    self.links.append([start, link.lower(), link_weights[i] + 2 * int(term_search)]) # 3 works pretty well
+                    try:
+                        time.sleep(np.random.randint(0, 10))
+                        self.features[link.lower()] = wp.page(link.lower()).content
+                        self.links.append([start, link.lower(), link_weights[i] + 2 * int(term_search)]) # 3 works pretty well
+                        print("GOT IT")
+                    except (DisambiguationError, PageError):
+                        print("ERROR, I DID NOT GET THIS PAGE")
                 #add the page content
                 # print(self.features[start])
                 
